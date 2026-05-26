@@ -1,0 +1,13 @@
+[package]
+name = "carbonyl-bundle"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+sha2 = "0.10"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

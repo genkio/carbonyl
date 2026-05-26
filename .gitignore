@@ -5,6 +5,7 @@ node_modules/
 /.git_cache
 /.vscode
 /build
+/dist
 /chromium/*
 !/chromium/.gclient
 !/chromium/depot_tools

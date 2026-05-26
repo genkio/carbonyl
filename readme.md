@@ -126,6 +126,39 @@ If you're just making changes to the Rust code, build `libcarbonyl` and replace 
 $ cargo build
 ```
 
+#### Iterating on the Rust side
+
+If you already have a working Carbonyl install (e.g. an unpacked release at
+`~/Downloads/carbonyl-0.0.3`), `scripts/dev-install.sh` rebuilds
+`libcarbonyl.dylib` and drops it into that install, so you can re-launch and
+test in seconds instead of rebuilding the runtime:
+
+```console
+$ ./scripts/dev-install.sh
+# point at a different install with: CARBONYL_INSTALL_DIR=/path/to/install ./scripts/dev-install.sh
+```
+
+The script picks the target triple by inspecting the installed dylib's arch
+and sets the install name to `@executable_path/libcarbonyl.dylib`.
+
+#### Producing a portable single-file binary
+
+`scripts/bundle.sh` embeds the 6 runtime files (`carbonyl`, the three dylibs,
+`icudtl.dat`, `v8_context_snapshot.x86_64.bin`) into a launcher binary at
+`dist/carbonyl`. On first run the launcher extracts the payload to
+`$XDG_CACHE_HOME/carbonyl/<hash>/` and `exec`s the real binary; later launches
+just `exec` directly. The `<hash>` is a sha256 prefix of the payload, so a
+new build always gets a fresh cache directory.
+
+```console
+$ ./scripts/dev-install.sh   # make sure libcarbonyl.dylib is up to date
+$ ./scripts/bundle.sh        # produces dist/carbonyl (~158 MB)
+$ cp dist/carbonyl ~/.local/bin/carbonyl
+```
+
+Override the source install with `CARBONYL_INSTALL_DIR=...`. The bundler
+crate lives under `tools/bundler/`.
+
 ### Runtime
 
 Few notes:
