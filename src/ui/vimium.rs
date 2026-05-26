@@ -37,6 +37,10 @@ pub struct Vimium {
     find_cursor: usize,
     hints: Vec<HintTarget>,
     hint_buf: String,
+    // When set, every key is forwarded to the page unchanged. `--no-vim` on
+    // the CLI flips this on so pages with their own keymap (e.g. slop-review)
+    // get the full key stream instead of fighting vimium for j/k/gg/etc.
+    disabled: bool,
 }
 
 impl Vimium {
@@ -49,6 +53,7 @@ impl Vimium {
             find_cursor: 0,
             hints: Vec::new(),
             hint_buf: String::new(),
+            disabled: std::env::var("CARBONYL_ENV_NO_VIM").is_ok(),
         }
     }
 
@@ -87,6 +92,10 @@ impl Vimium {
     }
 
     pub fn handle(&mut self, key: &Key, viewport_px_height: i32) -> NavigationAction {
+        if self.disabled {
+            return NavigationAction::Forward;
+        }
+
         let line_step = (viewport_px_height / 16).max(40);
         let half_page = (viewport_px_height / 2).max(line_step);
 
