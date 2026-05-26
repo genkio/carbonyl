@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. v0.0.3-genkio.1)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  UPSTREAM_TAG: v0.0.3
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            payload_zip: carbonyl.macos-arm64.zip
+            artifact: carbonyl-macos-arm64
+          - os: macos-14
+            target: x86_64-apple-darwin
+            payload_zip: carbonyl.macos-amd64.zip
+            artifact: carbonyl-macos-x86_64
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            payload_zip: carbonyl.linux-amd64.zip
+            artifact: carbonyl-linux-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Download upstream payload
+        run: |
+          curl -fsSL "https://github.com/fathyb/carbonyl/releases/download/${UPSTREAM_TAG}/${{ matrix.payload_zip }}" -o payload.zip
+          unzip -q payload.zip
+          echo "PAYLOAD_DIR=$(pwd)/carbonyl-0.0.3" >> "$GITHUB_ENV"
+
+      - name: Build bundler
+        env:
+          CARBONYL_PAYLOAD_DIR: ${{ env.PAYLOAD_DIR }}
+        working-directory: tools/bundler
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Stage artifact
+        run: |
+          cp tools/bundler/target/${{ matrix.target }}/release/carbonyl-bundle ${{ matrix.artifact }}
+          chmod +x ${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate checksums
+        working-directory: artifacts
+        run: sha256sum * > SHA256SUMS
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: artifacts/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true

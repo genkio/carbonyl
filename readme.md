@@ -40,6 +40,17 @@ $ npm install --global carbonyl
 $ carbonyl https://github.com
 ```
 
+### Homebrew (this fork)
+
+```console
+$ brew install genkio/tap/carbonyl
+$ carbonyl https://github.com
+```
+
+Ships a single self-contained binary. First launch extracts the runtime
+(~165 MB) to `$XDG_CACHE_HOME/carbonyl/<hash>/`. Builds: macOS arm64,
+macOS x86_64, Linux x86_64.
+
 ### Binaries
 
 - [macOS amd64](https://github.com/fathyb/carbonyl/releases/download/v0.0.3/carbonyl.macos-amd64.zip)
@@ -143,9 +154,10 @@ and sets the install name to `@executable_path/libcarbonyl.dylib`.
 
 #### Producing a portable single-file binary
 
-`scripts/bundle.sh` embeds the 6 runtime files (`carbonyl`, the three dylibs,
-`icudtl.dat`, `v8_context_snapshot.x86_64.bin`) into a launcher binary at
-`dist/carbonyl`. On first run the launcher extracts the payload to
+`scripts/bundle.sh` embeds the runtime files (`carbonyl`, the platform
+libs/dylibs, `icudtl.dat`, the v8 snapshot) into a launcher binary at
+`dist/carbonyl`. Target triple is auto-detected from the payload contents
+(macOS arm64/x86_64 or Linux x86_64). On first run the launcher extracts to
 `$XDG_CACHE_HOME/carbonyl/<hash>/` and `exec`s the real binary; later launches
 just `exec` directly. The `<hash>` is a sha256 prefix of the payload, so a
 new build always gets a fresh cache directory.

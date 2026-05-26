@@ -5,20 +5,35 @@ CARBONYL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL_DIR="${CARBONYL_INSTALL_DIR:-$HOME/Downloads/carbonyl-0.0.3}"
 DIST="${CARBONYL_DIST_DIR:-$CARBONYL_ROOT/dist}"
 
-for f in carbonyl libcarbonyl.dylib libEGL.dylib libGLESv2.dylib icudtl.dat v8_context_snapshot.x86_64.bin; do
+# Detect target from the v8 snapshot filename in INSTALL_DIR.
+if [ -f "$INSTALL_DIR/v8_context_snapshot.arm64.bin" ]; then
+    TARGET="aarch64-apple-darwin"
+elif [ -f "$INSTALL_DIR/v8_context_snapshot.x86_64.bin" ]; then
+    TARGET="x86_64-apple-darwin"
+elif [ -f "$INSTALL_DIR/v8_context_snapshot.bin" ]; then
+    TARGET="x86_64-unknown-linux-gnu"
+else
+    echo "Cannot determine target arch from $INSTALL_DIR"
+    echo "Run scripts/dev-install.sh first (or set CARBONYL_INSTALL_DIR)."
+    exit 1
+fi
+
+case "$TARGET" in
+    aarch64-apple-darwin|x86_64-apple-darwin)
+        REQUIRED=(carbonyl libcarbonyl.dylib libEGL.dylib libGLESv2.dylib icudtl.dat)
+        ;;
+    x86_64-unknown-linux-gnu)
+        REQUIRED=(carbonyl libcarbonyl.so libEGL.so libGLESv2.so libvk_swiftshader.so libvulkan.so.1 vk_swiftshader_icd.json icudtl.dat)
+        ;;
+esac
+
+for f in "${REQUIRED[@]}"; do
     if [ ! -f "$INSTALL_DIR/$f" ]; then
         echo "Missing $INSTALL_DIR/$f"
         echo "Run scripts/dev-install.sh first (or set CARBONYL_INSTALL_DIR)."
         exit 1
     fi
 done
-
-ARCH="$(uname -m)"
-case "$ARCH" in
-    arm64) TARGET="aarch64-apple-darwin" ;;
-    x86_64) TARGET="x86_64-apple-darwin" ;;
-    *) echo "Unsupported arch $ARCH"; exit 1 ;;
-esac
 
 rustup target add "$TARGET" >/dev/null 2>&1 || true
 

@@ -13,6 +13,41 @@ struct Payload {
     exec: bool,
 }
 
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const PAYLOAD: &[Payload] = &[
+    Payload {
+        name: "carbonyl",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/carbonyl")),
+        exec: true,
+    },
+    Payload {
+        name: "libcarbonyl.dylib",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libcarbonyl.dylib")),
+        exec: true,
+    },
+    Payload {
+        name: "libEGL.dylib",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libEGL.dylib")),
+        exec: true,
+    },
+    Payload {
+        name: "libGLESv2.dylib",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libGLESv2.dylib")),
+        exec: true,
+    },
+    Payload {
+        name: "icudtl.dat",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/icudtl.dat")),
+        exec: false,
+    },
+    Payload {
+        name: "v8_context_snapshot.arm64.bin",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/v8_context_snapshot.arm64.bin")),
+        exec: false,
+    },
+];
+
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
 const PAYLOAD: &[Payload] = &[
     Payload {
         name: "carbonyl",
@@ -42,6 +77,55 @@ const PAYLOAD: &[Payload] = &[
     Payload {
         name: "v8_context_snapshot.x86_64.bin",
         data: include_bytes!(concat!(env!("OUT_DIR"), "/v8_context_snapshot.x86_64.bin")),
+        exec: false,
+    },
+];
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+const PAYLOAD: &[Payload] = &[
+    Payload {
+        name: "carbonyl",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/carbonyl")),
+        exec: true,
+    },
+    Payload {
+        name: "libcarbonyl.so",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libcarbonyl.so")),
+        exec: true,
+    },
+    Payload {
+        name: "libEGL.so",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libEGL.so")),
+        exec: true,
+    },
+    Payload {
+        name: "libGLESv2.so",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libGLESv2.so")),
+        exec: true,
+    },
+    Payload {
+        name: "libvk_swiftshader.so",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libvk_swiftshader.so")),
+        exec: true,
+    },
+    Payload {
+        name: "libvulkan.so.1",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/libvulkan.so.1")),
+        exec: true,
+    },
+    Payload {
+        name: "vk_swiftshader_icd.json",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/vk_swiftshader_icd.json")),
+        exec: false,
+    },
+    Payload {
+        name: "icudtl.dat",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/icudtl.dat")),
+        exec: false,
+    },
+    Payload {
+        name: "v8_context_snapshot.bin",
+        data: include_bytes!(concat!(env!("OUT_DIR"), "/v8_context_snapshot.bin")),
         exec: false,
     },
 ];
