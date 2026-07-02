@@ -90,14 +90,7 @@ impl CommandLine {
                 "-d" | "--debug" => set!(debug, Debug),
                 "-b" | "--bitmap" => set!(bitmap, Bitmap),
                 "--adblock" => set!(adblock, Adblock),
-                // Graphics mode renders the page through the kitty graphics
-                // protocol. It requires the full page (including text) in the
-                // framebuffer, which is exactly what bitmap mode produces, so
-                // it implies bitmap rendering.
-                "-g" | "--graphics" => {
-                    set!(graphics, Graphics);
-                    set!(bitmap, Bitmap);
-                }
+                "-g" | "--graphics" => set!(graphics, Graphics),
                 "--vim" => set!(vim, Vim),
 
                 "-h" | "--help" => program = CommandLineProgram::Help,
@@ -120,7 +113,6 @@ impl CommandLine {
 
         if env::var(EnvVar::Graphics).is_ok() {
             graphics = true;
-            bitmap = true;
         }
 
         if env::var(EnvVar::ShellMode).is_ok() {
@@ -129,6 +121,16 @@ impl CommandLine {
 
         if env::var(EnvVar::Vim).is_ok() {
             vim = true;
+        }
+
+        // Graphics mode needs the page text rasterized into the framebuffer
+        // (bitmap mode) — except combined with vim, where text must arrive as
+        // cell runs so hints/find have something to scan; the image is then
+        // placed under the text (hybrid). Explicit --bitmap still forces the
+        // full-bitmap image, at the cost of hints/find.
+        if graphics && !vim {
+            bitmap = true;
+            env::set_var(EnvVar::Bitmap, "1");
         }
 
         CommandLine {

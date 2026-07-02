@@ -37,6 +37,10 @@ pub struct KittyGraphics {
     /// discards raw APC sequences even with allow-passthrough enabled; it
     /// only forwards them inside its own DCS wrapper.
     tmux: bool,
+    /// Graphics+vim hybrid: place the image at a z-index kitty draws under
+    /// text and under non-default cell backgrounds, so page text glyphs and
+    /// the vim overlays render on top of it.
+    under_text: bool,
 }
 
 impl KittyGraphics {
@@ -47,6 +51,8 @@ impl KittyGraphics {
         let ssh = env::var("SSH_CONNECTION").is_ok()
             || env::var("SSH_CLIENT").is_ok()
             || env::var("SSH_TTY").is_ok();
+        let cmd = crate::cli::CommandLine::parse();
+
         KittyGraphics {
             rgb: Vec::new(),
             pixels: Size::new(0, 0),
@@ -55,6 +61,7 @@ impl KittyGraphics {
             recent: std::collections::VecDeque::new(),
             direct: ssh || tmux,
             tmux,
+            under_text: cmd.graphics && cmd.vim && !cmd.bitmap,
         }
     }
 
@@ -153,10 +160,17 @@ impl KittyGraphics {
         // p=1  placement id (reused, so the terminal replaces the placement)
         // q=2  suppress the terminal's success/error replies
         // C=1  do not move the cursor when placing the image
-        let control = format!(
+        let mut control = format!(
             "a=T,f=24,o=z,s={},v={},c={},r={},i=1,p=1,q=2,C=1",
             self.pixels.width, self.pixels.height, cols, rows
         );
+
+        if self.under_text {
+            // Below -1073741824 kitty draws the image under cells with a
+            // non-default background too, which is what keeps the vim
+            // overlays opaque on top of it.
+            control.push_str(",z=-1073741825");
+        }
 
         if self.direct {
             let b64 = base64(&payload);

@@ -98,7 +98,14 @@ impl Window {
         // crisp result. Scaling both the DPI and the per-cell pixel size by the
         // same factor keeps the page layout identical while quadrupling the
         // pixels behind each cell.
-        let supersample = if self.cmd.graphics { 2.0 } else { 1.0 };
+        // Only for the full-bitmap image: chromium's text-run path only emits
+        // runs whose glyphs fit the cell grid, and a supersampled DPI makes
+        // every glyph misfit, which would starve the vim hybrid of text.
+        let supersample = if self.cmd.graphics && self.cmd.bitmap {
+            2.0
+        } else {
+            1.0
+        };
         // Device pixel ratio reported to Chromium
         self.dpi = dpi * supersample;
         // A virtual cell should contain a 2x4 pixel quadrant (times supersample)
@@ -108,7 +115,9 @@ impl Window {
         // 2x4 quadrant assumes a 1:2 cell, but real terminal cells are usually
         // taller than that, which stretches the image vertically. Match the
         // framebuffer's aspect ratio to the reported cell so it isn't distorted.
-        if self.cmd.graphics && pixel_known {
+        // Skipped in the vim hybrid: text and quadrant rects assume exactly
+        // 2x4 device pixels per cell, so a corrected scale would misalign them.
+        if self.cmd.graphics && self.cmd.bitmap && pixel_known {
             let cell_w = cell.width as f32 / term.width.max(1) as f32;
             let cell_h = cell.height as f32 / term.height.max(1) as f32;
 

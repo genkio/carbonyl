@@ -1,5 +1,6 @@
 use std::io::{self, Stdout, Write};
 
+use crate::cli::CommandLine;
 use crate::gfx::{Color, Point};
 
 use super::{binarize_quandrant, Cell};
@@ -13,6 +14,14 @@ pub struct Painter {
     foreground: Option<Color>,
     background_code: Option<u8>,
     foreground_code: Option<u8>,
+    /// Graphics+vim hybrid: the page image sits under the text at a z-index
+    /// that kitty draws below cells with a non-default background. Page text
+    /// cells keep an all-black quadrant (draw_background skips them), so
+    /// painting that as the default background makes them transparent over
+    /// the image, while vim overlays keep explicit backgrounds and stay
+    /// opaque.
+    hybrid: bool,
+    background_default: bool,
 }
 
 impl Painter {
@@ -29,6 +38,12 @@ impl Painter {
                 "truecolor" | "24bit" => true,
                 _ => false,
             },
+            hybrid: {
+                let cmd = CommandLine::parse();
+
+                cmd.graphics && cmd.vim && !cmd.bitmap
+            },
+            background_default: false,
         }
     }
 
@@ -96,7 +111,16 @@ impl Painter {
 
         self.cursor = Some(cursor + Point::new(width, 0));
 
-        if self.background != Some(background) {
+        if self.hybrid && background == Color::black() {
+            if !self.background_default {
+                self.background_default = true;
+                self.background = None;
+                self.background_code = None;
+
+                write!(self.buffer, "\x1b[49m")?
+            }
+        } else if self.background != Some(background) || self.background_default {
+            self.background_default = false;
             self.background = Some(background);
 
             if self.true_color {

@@ -103,9 +103,11 @@ handled by Carbonyl itself rather than forwarded to the page; press `i`
 (Insert mode) before typing into page inputs. Arrows, Enter and Tab always
 pass through.
 
-Note: the find highlights, hint labels and status bar are drawn as terminal
-cells, so they are not visible under `--graphics`; the scrolling and history
-keys still work there.
+Combining `--vim` with `--graphics` switches to a hybrid renderer: the page
+image is drawn at full resolution under the text layer, while text comes in
+as terminal glyphs so hints, find and the status bar keep working on top of
+it. Pass `--bitmap` as well to force the full-bitmap image instead; hints and
+find have no text to scan there and are effectively disabled.
 
 ### Scrolling
 
