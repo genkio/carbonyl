@@ -26,14 +26,17 @@ jobs:
             target: aarch64-apple-darwin
             payload_zip: carbonyl.macos-arm64.zip
             artifact: carbonyl-macos-arm64
+            lib: libcarbonyl.dylib
           - os: macos-14
             target: x86_64-apple-darwin
             payload_zip: carbonyl.macos-amd64.zip
             artifact: carbonyl-macos-x86_64
+            lib: libcarbonyl.dylib
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             payload_zip: carbonyl.linux-amd64.zip
             artifact: carbonyl-linux-x86_64
+            lib: libcarbonyl.so
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -48,6 +51,14 @@ jobs:
           curl -fsSL "https://github.com/fathyb/carbonyl/releases/download/${UPSTREAM_TAG}/${{ matrix.payload_zip }}" -o payload.zip
           unzip -q payload.zip
           echo "PAYLOAD_DIR=$(pwd)/carbonyl-0.0.3" >> "$GITHUB_ENV"
+
+      # Upstream payload ships the stock renderer. Rebuild libcarbonyl from
+      # this branch (kitty graphics support) and swap it into the payload
+      # before bundling. Same exported C ABI, so the Chromium binary is reused.
+      - name: Build libcarbonyl from source
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          cp "build/${{ matrix.target }}/release/${{ matrix.lib }}" "$PAYLOAD_DIR/${{ matrix.lib }}"
 
       - name: Build bundler
         env:
