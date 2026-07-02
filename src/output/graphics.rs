@@ -106,10 +106,17 @@ impl KittyGraphics {
     /// Tell the terminal to forget our image and its data. Used on resize so a
     /// stale placement isn't left scaled to the wrong size. Scoped to image
     /// id 1 (`d=I,i=1`) so we never touch images other programs may have drawn.
+    /// q=2 because after exit any terminal reply would land on the shell.
     pub fn reset(&self) -> Vec<u8> {
         let mut out = Vec::new();
-        self.wrap(b"\x1b_Ga=d,d=I,i=1\x1b\\", &mut out);
+        self.wrap(b"\x1b_Ga=d,d=I,i=1,q=2\x1b\\", &mut out);
         out
+    }
+
+    /// Exit cleanup for the launcher process, which has no renderer state;
+    /// detection re-runs off the environment.
+    pub fn cleanup() -> Vec<u8> {
+        KittyGraphics::new().reset()
     }
 
     /// Encode the escape codes that draw the framebuffer into a `cols`x`rows`

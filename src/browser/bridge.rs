@@ -8,7 +8,7 @@ use libc::{c_char, c_float, c_int, c_uchar, c_uint, c_void, size_t};
 
 use crate::cli::{CommandLine, CommandLineProgram, EnvVar};
 use crate::gfx::{Cast, Color, Point, Rect, Size};
-use crate::output::{RenderThread, Window};
+use crate::output::{KittyGraphics, RenderThread, Window};
 use crate::ui::navigation::NavigationAction;
 use crate::{input, utils::log};
 
@@ -129,6 +129,16 @@ fn main() -> io::Result<Option<i32>> {
         .stdout(Stdio::inherit())
         .stderr(Stdio::piped())
         .output()?;
+
+    // Text redraws never erase kitty images, so an orphaned placement would
+    // keep covering the terminal (and any tmux panes under it) after we quit.
+    // Locally the alt-screen exit cleans up, but through tmux passthrough the
+    // image lives on the outer screen, which tmux never clears.
+    if cmd.graphics {
+        let mut out = io::stdout();
+        let _ = out.write_all(&KittyGraphics::cleanup());
+        let _ = out.flush();
+    }
 
     terminal.teardown();
 
