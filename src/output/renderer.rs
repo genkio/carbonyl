@@ -93,9 +93,9 @@ impl Renderer {
 
         // Drop any image we transmitted at the old size so the terminal doesn't
         // keep a stale placement around while we redraw at the new size.
-        if self.graphics.is_some() {
+        if let Some(graphics) = &self.graphics {
             let mut stdout = io::stdout();
-            let _ = stdout.write_all(KittyGraphics::reset());
+            let _ = stdout.write_all(&graphics.reset());
             let _ = stdout.flush();
         }
 
