@@ -300,7 +300,10 @@ impl Renderer {
 
     fn restore_overlay(&mut self) {
         let len = self.cells.len();
-        for (idx, original) in std::mem::take(&mut self.overlay_restore) {
+        // Overlays can snapshot the same cell twice in one frame (e.g. a find
+        // match under the status bar); only the first snapshot holds page
+        // content, so restore in reverse to make it win.
+        for (idx, original) in std::mem::take(&mut self.overlay_restore).into_iter().rev() {
             if idx < len {
                 let (_, cell) = &mut self.cells[idx];
                 cell.quadrant = original.quadrant;
@@ -368,25 +371,6 @@ impl Renderer {
             }
         }
 
-        if let Some(text) = &status_text {
-            let suffix = if matches.is_empty() && find_query.is_some() {
-                " (no matches)".to_string()
-            } else if !matches.is_empty() {
-                let cur = find_cursor % matches.len();
-                format!(" [{}/{}]", cur + 1, matches.len())
-            } else {
-                String::new()
-            };
-            let full = format!("{}{}", text, suffix);
-            let row = viewport_h.saturating_sub(1).max(1);
-            let bg = Color::splat(20);
-            let fg = Color::new(255, 255, 255);
-            let max_chars = viewport_w.saturating_sub(1);
-            let printed: String = full.chars().take(max_chars).collect();
-            self.overlay_row(row, viewport_w, bg);
-            self.overlay_text(&printed, row, viewport_w, fg);
-        }
-
         if !matches.is_empty() {
             let current_idx = find_cursor % matches.len();
             let highlight_bg = Color::new(255, 235, 110);
@@ -448,6 +432,27 @@ impl Renderer {
                     }
                 }
             }
+        }
+
+        // Status bar last so match highlights and hint labels on the bottom
+        // row can't paint over it.
+        if let Some(text) = &status_text {
+            let suffix = if matches.is_empty() && find_query.is_some() {
+                " (no matches)".to_string()
+            } else if !matches.is_empty() {
+                let cur = find_cursor % matches.len();
+                format!(" [{}/{}]", cur + 1, matches.len())
+            } else {
+                String::new()
+            };
+            let full = format!("{}{}", text, suffix);
+            let row = viewport_h.saturating_sub(1).max(1);
+            let bg = Color::splat(20);
+            let fg = Color::new(255, 255, 255);
+            let max_chars = viewport_w.saturating_sub(1);
+            let printed: String = full.chars().take(max_chars).collect();
+            self.overlay_row(row, viewport_w, bg);
+            self.overlay_text(&printed, row, viewport_w, fg);
         }
     }
 
