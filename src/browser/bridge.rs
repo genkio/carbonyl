@@ -122,6 +122,17 @@ fn main() -> io::Result<Option<i32>> {
             .arg("--disable-threaded-animation");
     }
 
+    // Before cmd.args so a user-supplied --proxy-server still wins (chromium
+    // keeps the last occurrence of a switch).
+    if cmd.adblock {
+        match super::adblock::serve() {
+            Ok(port) => {
+                command.arg(format!("--proxy-server=127.0.0.1:{port}"));
+            }
+            Err(error) => log::error!("failed to start adblock proxy: {error}"),
+        }
+    }
+
     let output = command
         .args(cmd.args)
         .env(EnvVar::ShellMode, "1")

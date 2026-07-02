@@ -10,6 +10,8 @@ Options:
     -f, --fps=<fps>            set the maximum number of frames per second (default: 60)
     -z, --zoom=<zoom>          set the zoom level in percent (default: 100)
     -b, --bitmap               render text as bitmaps
+        --adblock              block ads and trackers (bundled HaGeZi Pro list,
+                               ~230k domains, filtered by a local proxy)
     -g, --graphics             render at full resolution using the kitty graphics protocol
     -d, --debug                enable debug logs
         --vim                  enable vimium-style keyboard navigation

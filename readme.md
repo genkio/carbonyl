@@ -78,6 +78,21 @@ macOS x86_64, Linux x86_64.
   </tbody>
 </table>
 
+## Ad blocking
+
+`--adblock` blocks ads and trackers by hostname. The launcher starts a local
+filtering proxy and points chromium at it, so requests to listed hosts are
+refused before any DNS lookup or connection leaves the machine. The bundled
+list is [HaGeZi's Multi PRO](https://github.com/hagezi/dns-blocklists)
+(~230k domains covering ads, tracking, telemetry, phishing and scam hosts,
+GPL-3.0). Besides removing most display ads it stops their animations, which
+otherwise force constant repaints; in `--graphics` mode over SSH that is the
+difference between a calm page and permanent flashing.
+
+Hostname blocking has no cosmetic filtering: an empty slot may remain where
+an ad would have been, and first-party ads (e.g. YouTube's own) still load.
+A user-supplied `--proxy-server` takes precedence and disables `--adblock`.
+
 ## Keyboard navigation (vimium-style)
 
 Carbonyl ships with an opt-in keyboard navigation layer modelled on

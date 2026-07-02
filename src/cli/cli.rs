@@ -9,6 +9,7 @@ pub struct CommandLine {
     pub zoom: f32,
     pub debug: bool,
     pub bitmap: bool,
+    pub adblock: bool,
     pub graphics: bool,
     pub vim: bool,
     pub program: CommandLineProgram,
@@ -18,6 +19,7 @@ pub struct CommandLine {
 pub enum EnvVar {
     Debug,
     Bitmap,
+    Adblock,
     Graphics,
     ShellMode,
     Vim,
@@ -28,6 +30,7 @@ impl EnvVar {
         match self {
             EnvVar::Debug => "CARBONYL_ENV_DEBUG",
             EnvVar::Bitmap => "CARBONYL_ENV_BITMAP",
+            EnvVar::Adblock => "CARBONYL_ENV_ADBLOCK",
             EnvVar::Graphics => "CARBONYL_ENV_GRAPHICS",
             EnvVar::ShellMode => "CARBONYL_ENV_SHELL_MODE",
             EnvVar::Vim => "CARBONYL_ENV_VIM",
@@ -47,6 +50,7 @@ impl CommandLine {
         let mut zoom = 1.0;
         let mut debug = false;
         let mut bitmap = false;
+        let mut adblock = false;
         let mut graphics = false;
         let mut vim = false;
         let mut shell_mode = false;
@@ -85,6 +89,7 @@ impl CommandLine {
                 "-z" | "--zoom" => set_f32!(zoom = zoom / 100.0),
                 "-d" | "--debug" => set!(debug, Debug),
                 "-b" | "--bitmap" => set!(bitmap, Bitmap),
+                "--adblock" => set!(adblock, Adblock),
                 // Graphics mode renders the page through the kitty graphics
                 // protocol. It requires the full page (including text) in the
                 // framebuffer, which is exactly what bitmap mode produces, so
@@ -109,6 +114,10 @@ impl CommandLine {
             bitmap = true;
         }
 
+        if env::var(EnvVar::Adblock).is_ok() {
+            adblock = true;
+        }
+
         if env::var(EnvVar::Graphics).is_ok() {
             graphics = true;
             bitmap = true;
@@ -128,6 +137,7 @@ impl CommandLine {
             zoom,
             debug,
             bitmap,
+            adblock,
             graphics,
             vim,
             program,
