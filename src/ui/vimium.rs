@@ -1,3 +1,4 @@
+use crate::cli::CommandLine;
 use crate::input::Key;
 
 use super::navigation::NavigationAction;
@@ -37,9 +38,10 @@ pub struct Vimium {
     find_cursor: usize,
     hints: Vec<HintTarget>,
     hint_buf: String,
-    // When set, every key is forwarded to the page unchanged. `--no-vim` on
-    // the CLI flips this on so pages with their own keymap (e.g. slop-review)
-    // get the full key stream instead of fighting vimium for j/k/gg/etc.
+    // Off by default: every key forwards to the page unchanged, like stock
+    // carbonyl. `--vim` opts in, mirroring how `--graphics` gates the kitty
+    // renderer, so pages with their own keymap keep the full key stream
+    // unless the user asks for vimium.
     disabled: bool,
 }
 
@@ -53,7 +55,7 @@ impl Vimium {
             find_cursor: 0,
             hints: Vec::new(),
             hint_buf: String::new(),
-            disabled: std::env::var("CARBONYL_ENV_NO_VIM").is_ok(),
+            disabled: !CommandLine::parse().vim,
         }
     }
 
@@ -242,6 +244,10 @@ impl Vimium {
                 self.hints.clear();
                 NavigationAction::Ignore
             }
+            // Arrows (0x11-0x14), Enter, Tab, backspace. Swallowing these
+            // would kill basic page interaction (focus cycling, link
+            // activation), so pass them through.
+            c if c < 0x20 || c == 0x7f => NavigationAction::Forward,
             _ => NavigationAction::Ignore,
         }
     }

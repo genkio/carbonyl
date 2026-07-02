@@ -69,10 +69,17 @@ $ carbonyl https://github.com
 
 ## Keyboard navigation (vimium-style)
 
-Carbonyl ships with a built-in keyboard navigation layer modelled on
-[Vimium](https://github.com/philc/vimium). When no input field is focused, the
-following keys are handled by Carbonyl itself rather than forwarded to the
-page.
+Carbonyl ships with an opt-in keyboard navigation layer modelled on
+[Vimium](https://github.com/philc/vimium). Enable it with `--vim` (or
+`CARBONYL_ENV_VIM=1`); it is off by default so every key reaches the page as
+usual. When enabled and the URL bar is unfocused, the following keys are
+handled by Carbonyl itself rather than forwarded to the page; press `i`
+(Insert mode) before typing into page inputs. Arrows, Enter and Tab always
+pass through.
+
+Note: the find highlights, hint labels and status bar are drawn as terminal
+cells, so they are not visible under `--graphics`; the scrolling and history
+keys still work there.
 
 ### Scrolling
 
