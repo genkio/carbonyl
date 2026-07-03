@@ -122,6 +122,12 @@ fn main() -> io::Result<Option<i32>> {
             .arg("--disable-threaded-animation");
     }
 
+    // Blink's fetcher then rejects every image (img and CSS background alike)
+    // before the request goes out, so no image bytes leave the machine.
+    if cmd.no_images {
+        command.arg("--blink-settings=imagesEnabled=false");
+    }
+
     // Before cmd.args so a user-supplied --proxy-server still wins (chromium
     // keeps the last occurrence of a switch).
     if cmd.adblock {

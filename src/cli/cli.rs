@@ -10,6 +10,7 @@ pub struct CommandLine {
     pub debug: bool,
     pub bitmap: bool,
     pub adblock: bool,
+    pub no_images: bool,
     pub graphics: bool,
     pub vim: bool,
     pub program: CommandLineProgram,
@@ -20,6 +21,7 @@ pub enum EnvVar {
     Debug,
     Bitmap,
     Adblock,
+    NoImages,
     Graphics,
     ShellMode,
     Vim,
@@ -31,6 +33,7 @@ impl EnvVar {
             EnvVar::Debug => "CARBONYL_ENV_DEBUG",
             EnvVar::Bitmap => "CARBONYL_ENV_BITMAP",
             EnvVar::Adblock => "CARBONYL_ENV_ADBLOCK",
+            EnvVar::NoImages => "CARBONYL_ENV_NO_IMAGES",
             EnvVar::Graphics => "CARBONYL_ENV_GRAPHICS",
             EnvVar::ShellMode => "CARBONYL_ENV_SHELL_MODE",
             EnvVar::Vim => "CARBONYL_ENV_VIM",
@@ -51,6 +54,7 @@ impl CommandLine {
         let mut debug = false;
         let mut bitmap = false;
         let mut adblock = false;
+        let mut no_images = false;
         let mut graphics = false;
         let mut vim = false;
         let mut shell_mode = false;
@@ -90,6 +94,7 @@ impl CommandLine {
                 "-d" | "--debug" => set!(debug, Debug),
                 "-b" | "--bitmap" => set!(bitmap, Bitmap),
                 "--adblock" => set!(adblock, Adblock),
+                "--no-images" => set!(no_images, NoImages),
                 "-g" | "--graphics" => set!(graphics, Graphics),
                 "--vim" => set!(vim, Vim),
 
@@ -109,6 +114,10 @@ impl CommandLine {
 
         if env::var(EnvVar::Adblock).is_ok() {
             adblock = true;
+        }
+
+        if env::var(EnvVar::NoImages).is_ok() {
+            no_images = true;
         }
 
         if env::var(EnvVar::Graphics).is_ok() {
@@ -140,6 +149,7 @@ impl CommandLine {
             debug,
             bitmap,
             adblock,
+            no_images,
             graphics,
             vim,
             program,

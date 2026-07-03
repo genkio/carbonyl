@@ -93,6 +93,16 @@ Hostname blocking has no cosmetic filtering: an empty slot may remain where
 an ad would have been, and first-party ads (e.g. YouTube's own) still load.
 A user-supplied `--proxy-server` takes precedence and disables `--adblock`.
 
+## Blocking images
+
+`--no-images` stops all images from loading. It disables images in Blink
+(`--blink-settings=imagesEnabled=false`), so the resource fetcher rejects every
+image request (both `<img>` and CSS backgrounds) before it hits the network:
+nothing is downloaded and then hidden, the fetch never happens. Since Carbonyl
+renders images as low-resolution blocks anyway, this trades a little visual
+context for a large bandwidth saving, useful on slow or metered connections.
+Text, layout and links are unaffected.
+
 ## Keyboard navigation (vimium-style)
 
 Carbonyl ships with an opt-in keyboard navigation layer modelled on
