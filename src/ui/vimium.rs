@@ -224,8 +224,8 @@ impl Vimium {
             }
             b'G' => NavigationAction::Scroll(-SCROLL_TO_EDGE_PX),
             b'r' => NavigationAction::Refresh(),
-            b'H' => NavigationAction::GoBack(),
-            b'L' => NavigationAction::GoForward(),
+            b'H' | b'[' => NavigationAction::GoBack(),
+            b'L' | b']' => NavigationAction::GoForward(),
             b'n' => {
                 if self.find_query.is_some() {
                     self.find_cursor = self.find_cursor.wrapping_add(1);

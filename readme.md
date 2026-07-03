@@ -134,11 +134,11 @@ find have no text to scan there and are effectively disabled.
 
 ### History
 
-| Key | Action       |
-| --- | ------------ |
-| `H` | Go back      |
-| `L` | Go forward   |
-| `r` | Reload page  |
+| Key        | Action      |
+| ---------- | ----------- |
+| `H` or `[` | Go back     |
+| `L` or `]` | Go forward  |
+| `r`        | Reload page |
 
 ### Find on page
 
