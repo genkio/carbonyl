@@ -409,6 +409,7 @@ pub extern "C" fn carbonyl_renderer_listen(bridge: RendererPtr, delegate: *mut B
                         }
                         NavigationAction::GoBack() => emit!(go_back()),
                         NavigationAction::GoForward() => emit!(go_forward()),
+                        NavigationAction::Exit() => emit!(shutdown()),
                         NavigationAction::Refresh() => emit!(refresh()),
                         NavigationAction::GoTo(url) => {
                             let c_str = CString::new(url).unwrap();

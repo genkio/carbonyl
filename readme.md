@@ -140,6 +140,9 @@ find have no text to scan there and are effectively disabled.
 | `L` or `]` | Go forward  |
 | `r`        | Reload page |
 
+Going back with no history left quits Carbonyl, so `[` (or `H`) also works
+as a quick way to close the browser.
+
 ### Find on page
 
 | Key   | Action                                       |

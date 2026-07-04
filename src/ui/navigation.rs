@@ -19,6 +19,7 @@ pub enum NavigationAction {
     GoBack(),
     GoForward(),
     Refresh(),
+    Exit(),
 }
 
 #[derive(Debug)]
@@ -93,13 +94,18 @@ impl Navigation {
 
         match self.cursor {
             None => {
-                if let (true, 0x14) = (modifier_key, key.char) {
-                    return NavigationAction::GoBack();
+                let action = if let (true, 0x14) = (modifier_key, key.char) {
+                    NavigationAction::GoBack()
+                } else if let (true, 0x13) = (modifier_key, key.char) {
+                    NavigationAction::GoForward()
+                } else {
+                    self.vimium.handle(key, viewport_px_height)
+                };
+
+                match action {
+                    NavigationAction::GoBack() if !self.can_go_back => NavigationAction::Exit(),
+                    action => action,
                 }
-                if let (true, 0x13) = (modifier_key, key.char) {
-                    return NavigationAction::GoForward();
-                }
-                self.vimium.handle(key, viewport_px_height)
             }
             Some(cursor) => {
                 if let Some(url) = &mut self.url {
